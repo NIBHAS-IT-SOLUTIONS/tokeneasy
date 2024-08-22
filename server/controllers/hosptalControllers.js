@@ -38,7 +38,18 @@ module.exports={
     },
 
     getHospitalbyID:async(req,res)=>{
-        res.json({mesage:"hai"})
+        let hospitalID=req.body.hospitalID
+        //console.log(hospitalID);
+        
+        try{
+
+
+            const Hospitals=await Hospital.findById(hospitalID)
+            if(Hospitals==null) return res.status(400).json({ msg: "No Hospitals Found" });
+            res.status(201).json(Hospitals);
+        }
+        catch(err){
+            res.status(500).json({ error: err.message });
+        }  
     }
-     
 }

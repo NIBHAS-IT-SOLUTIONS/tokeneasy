@@ -2,23 +2,19 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const HospitalSchema = new Schema({
+const OPTicketSchema = new Schema({
   OPticketNo: {
     type: String,
     required: true
   },
   UserID:{
-    type: String,
+    type: mongoose.Schema.ObjectId,
     required: true
   },
   HospitalID: {
-    type: String,
-    required: true
-  },
-  contactInfo: {
-    type: String,
+    type: mongoose.Schema.ObjectId,
     required: true
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Hospital', HospitalSchema);
+module.exports = mongoose.model('OPticket', OPTicketSchema);

@@ -5,7 +5,9 @@ const jwt=require('jsonwebtoken')
 const Token = require("../models/token");
 const sendEmail = require("../utils/sendMail");
 const crypto = require("crypto");
+const OPmodel = require('../models/OPmodel');
 
+const { default: mongoose, Mongoose } = require('mongoose');
 module.exports = {
     signup: async (req, res) => {
         try{
@@ -81,6 +83,30 @@ module.exports = {
         } catch (error) {
           res.status(500).send({ message: "Internal Server Error" });
         }
+      },
+      addOPTicket:async(req,res)=>{
+
+        const { OPticketNo, UserID,HospitalID } = req.body.opticket;
+
+        try{
+          const newOP=new OPmodel({
+            OPticketNo,
+            UserID:new mongoose.Types.ObjectId(UserID),
+            HospitalID:new mongoose.Types.ObjectId(HospitalID)
+          })
+          let op=await OPmodel.find({OPticketNo,UserID,HospitalID})
+          console.log()
+          if(op.length>0) return res.status(400).json({ msg: "OP Ticket / MRD already Registered. " });
+          
+          const savedOP=await newOP.save()
+          res.status(201).json({savedOP, msg: "OPtickNo / MRD No Added Successfully" });
+        }
+        catch(err){
+          res.status(500).json({ error: err.message });
+        }
+
+
+          
       }
     
 }
