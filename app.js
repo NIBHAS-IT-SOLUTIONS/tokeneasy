@@ -8,10 +8,8 @@ const morgan=require('morgan')
 
 
 
-var passport = require('passport');
-const authGoogleRoute = require("./server/routes/authGoogle");
 const cookieSession = require("cookie-session");
-const passportStrategy = require("./server/utils/passport");
+
 
 
 
@@ -20,7 +18,7 @@ const PORT = process.env.PORT || 5000;
 const configDatabase=require('./server/database/Database')
 
 const patientRouter=require('./server/routes/PatientRouter')
-// const menuRouter=require('./routes/menuroutesadmin')
+const HospitallStaffRouter=require('./server/routes/HospitalStaffRouter')
 const adminRouter=require('./server/routes/adminRouter')
 
 app.use(helmet());
@@ -47,17 +45,11 @@ app.use(
 
 
 
-app.use(passport.initialize());
-app.use(passport.session());
-
-
  
 app.use('/quicktoken/api/patient',patientRouter)
 app.use('/quicktoken/api/admin',adminRouter)
-app.use('/',authGoogleRoute)
+app.use('/quicktoken/api/hospitalstaff',HospitallStaffRouter)
 
-// app.use('/api/menu/admin',menuRouter)
-// app.use('/api/admin',adminRouter)
 
 
 
