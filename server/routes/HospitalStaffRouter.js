@@ -2,8 +2,8 @@ const router=require('express').Router()
 
 
 const { addDoctor,UpdateDoctor,deleteDoctor } = require('../controllers/DoctorControllers')
-const {getHospitalbyID,UpdateHospitalByID,AddDepartment,UpdateDepartment,deleteDepartment,AddStaff,updateStaff,deleteStaff} = require('../controllers/hospitalControllers')
-
+const {getHospitalbyID,UpdateHospitalByID,AddDepartment,UpdateDepartment,deleteDepartment,Addopdetails,updateopdetails,deleteopdetails} = require('../controllers/hospitalControllers')
+const {AddStaff,updateStaff,deleteStaff,loginStaff}=require('../controllers/HospitalStaffControllers')
 
 router.post('/gethospitalbyid',getHospitalbyID)
 router.post('/updatehospital',UpdateHospitalByID)
@@ -19,6 +19,13 @@ router.delete('/deletedoctor',deleteDoctor)
 router.post('/addstaff',AddStaff)
 router.post('/updatestaff',updateStaff)
 router.post('/deletestaff',deleteStaff)
+
+router.post('/stafflogin',loginStaff)
+
+router.post('/addhospitalopdetails',Addopdetails)
+router.post('/updatehospitalopdetails',updateopdetails)
+//router.post('/deletehospitalopdetails',deleteopdetails)
+
 
 
 

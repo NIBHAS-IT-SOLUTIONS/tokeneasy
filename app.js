@@ -6,12 +6,7 @@ const bodyParser = require('body-parser');
 const helmet=require('helmet')
 const morgan=require('morgan')
 
-
-
 const cookieSession = require("cookie-session");
-
-
-
 
 const app = express();
 const PORT = process.env.PORT || 5000;

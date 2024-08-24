@@ -7,10 +7,13 @@ const sendEmail = require("../utils/sendMail");
 const crypto = require("crypto");
 const OPmodel = require('../models/OPmodel');
 
+
+
 const { default: mongoose, Mongoose } = require('mongoose');
+const Admin = require('../models/AdminModel');
 module.exports = {
     signup: async (req, res) => {
-        try{
+      try{
         const {
             username,
             email,
@@ -38,7 +41,7 @@ module.exports = {
           res.status(201).json({savedPatient, msg: "Registered Successfully An Email sent to your account please verify" });
         } catch (err) {
           res.status(500).json({ error: err.message });
-        }
+        }  
     },
     login: async(req,res) => {
 

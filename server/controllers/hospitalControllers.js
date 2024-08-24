@@ -55,6 +55,9 @@ module.exports={
     UpdateHospitalByID:(req,res)=>{
 
     },
+    deleteHospitalByID:(req,res)=>{
+        
+    },
     AddDepartment:async(req,res)=>{
             let {hospitalId,DepartmentName}=req.body.Department
             hospitalId=new mongoose.Types.ObjectId(hospitalId)
@@ -78,14 +81,12 @@ module.exports={
     deleteDepartment:(req,res)=>{
 
     },
-    AddStaff:(req,res)=>{
+    Addopdetails:async(req,res)=>{
+
+    },
+    updateopdetails:async(req,res)=>{
         
-    },
-    updateStaff:(req,res)=>{
-
-    },
-    deleteStaff:(req,res)=>{
-
     }
+   
 
 }
