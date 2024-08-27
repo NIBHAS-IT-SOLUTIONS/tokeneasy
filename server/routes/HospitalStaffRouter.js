@@ -1,7 +1,7 @@
 const router=require('express').Router()
 
 
-const { addDoctor,UpdateDoctor,deleteDoctor } = require('../controllers/DoctorControllers')
+const { addDoctor,UpdateDoctor,deleteDoctor,doctorleave,doctoravailable,updateLeave } = require('../controllers/DoctorControllers')
 const {getHospitalbyID,UpdateHospitalByID,AddDepartment,UpdateDepartment,deleteDepartment,Addopdetails,updateopdetails,deleteopdetails} = require('../controllers/hospitalControllers')
 const {AddStaff,updateStaff,deleteStaff,loginStaff}=require('../controllers/HospitalStaffControllers')
 
@@ -15,6 +15,11 @@ router.delete('/deletedepartment',deleteDepartment)
 router.post('/adddoctor',addDoctor)
 router.post('/updatedoctor',UpdateDoctor)
 router.delete('/deletedoctor',deleteDoctor)
+
+router.post('/doctors/:id/leave-dates',doctorleave)
+router.put('/doctors/:id/leave/:leaveId',updateLeave)
+
+router.get('/doctors/:id/available-dates',doctoravailable)
 
 router.post('/addstaff',AddStaff)
 router.post('/updatestaff',updateStaff)

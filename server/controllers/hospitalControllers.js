@@ -3,6 +3,7 @@ const express = require('express')
 let Hospital=require('../models/HospitalModel');  
 const DepartmentModel = require('../models/DepartmentModel');
 const { default: mongoose, Mongoose } = require('mongoose');
+const HospitalOPModel = require('../models/HospitalOPModel');
 
 module.exports={
     addHospital:async(req,res)=>{
@@ -82,6 +83,22 @@ module.exports={
 
     },
     Addopdetails:async(req,res)=>{
+        let {hospitalId,Price,validity}=req.body.HospitalOP
+        HospitalID=new mongoose.Types.ObjectId(hospitalId)
+        try{
+            const opdetails=new HospitalOPModel({
+                Price,
+                HospitalID,
+                validity
+            })
+            const checkopdetails=await HospitalOPModel.find({HospitalID})
+            if (checkopdetails.length>0) return res.status(400).json({ msg: "OPDetails Already Exists. " });
+            const newopdetails=await opdetails.save()
+            res.status(201).json({newopdetails, msg: "OP Details Added Successfully" });
+        }
+        catch(err){
+            res.status(500).json({ error: err.message });
+        }
 
     },
     updateopdetails:async(req,res)=>{

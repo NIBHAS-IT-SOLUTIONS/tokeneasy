@@ -4,11 +4,11 @@ const Schema = mongoose.Schema;
 
 const HospitalOPTSchema = new Schema({
   Price: {
-    type: String,
+    type: Number,
     required: true
   },
     validity:{
-    type: String,
+    type: Number,
     required: true
     },
   HospitalID: {
