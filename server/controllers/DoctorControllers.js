@@ -35,7 +35,7 @@ module.exports = {
   },
   UpdateDoctor: (req, res) => {},
   deleteDoctor: (req, res) => {},
-  doctorleave: async (req, res) => {
+  adddoctorleave: async (req, res) => {
     const { id } = req.params;
     const { date, onLeave, MorningOP, EveningOP, notes } =
       req.body.doctorleave;
@@ -90,6 +90,33 @@ module.exports = {
       res.status(500).json({ error: err.message });
     }}
     ,
+    getLeaves:async(req,res)=>{
+      const { id } = req.params;
+
+  try {
+    // Find the doctor by ID
+    const doctor = await Doctor.findById(id).exec();
+    if (!doctor) {
+      return res.status(404).json({ error: 'Doctor not found' });
+    }
+
+    // Get the leave records
+    const leaveRecords = doctor.leave.map(leave => ({
+      date: moment(leave.date).format('YYYY-MM-DD'),
+      MorningOP: leave.MorningOP,
+      EveningOP: leave.EveningOP,
+      onLeave: leave.onLeave,
+      notes: leave.notes || ''
+    }));
+
+    // Sort leave records by date
+    leaveRecords.sort((a, b) => moment(a.date).diff(moment(b.date)));
+
+    res.status(200).json(leaveRecords);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+    },
   doctoravailable: async (req, res) => {
     const { id } = req.params;
 

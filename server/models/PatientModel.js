@@ -6,6 +6,14 @@ const patientSchema = new Schema({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   verified: { type: Boolean, default: false },
+  phoneNumber: {
+    type: String,
+    unique: true,
+  },
+  googleId: {
+    type: String,
+    unique: true
+  }
 }, {
   timestamps: true,
 });
