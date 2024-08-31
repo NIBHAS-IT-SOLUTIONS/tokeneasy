@@ -38,12 +38,10 @@ module.exports = {
       }).save();
       const url = `${process.env.BASE_URL}/quicktoken/api/patient/${savedPatient.id}/verify/${token.token}`;
       await sendEmail(savedPatient.email, "Verify Email", url);
-      res
-        .status(201)
-        .json({
-          savedPatient,
-          msg: "Registered Successfully An Email sent to your account please verify",
-        });
+      res.status(201).json({
+        savedPatient,
+        msg: "Registered Successfully An Email sent to your account please verify",
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -82,7 +80,7 @@ module.exports = {
       });
       if (!token) return res.status(400).send({ message: "Invalid link" });
 
-      await Patient.findByIdAndUpdate(patient._id, { verified: true });
+      await Patient.findByIdAndUpdate(patient._id, { emailverified: true });
       var tokenid = token._id;
       await Token.findByIdAndDelete(tokenid);
 
@@ -116,7 +114,6 @@ module.exports = {
     }
   },
   loginwithPhone: async (req, res) => {
-    
     if (req.body.phonenumber) {
       try {
         var OTPGenerated = otpGenerator.generate(5, {
@@ -127,7 +124,7 @@ module.exports = {
         console.log(OTPGenerated);
         //const {phonenumber}=req.body
         phonenumber = "+918086094884";
-        
+
         const client = twilio(accountSid, authToken);
 
         async function createVerification() {
@@ -149,27 +146,104 @@ module.exports = {
       }
     }
     if (req.body.OTPentered) {
-      
-     try
-     { const {OTPentered,phonenumber}=req.body.OTPentered
-      const client = twilio(accountSid, authToken);
+      try {
+        const { OTPentered, phonenumber } = req.body.OTPentered;
+        const client = twilio(accountSid, authToken);
 
-      async function createVerificationCheck() {
-        const verificationCheck = await client.verify.v2
-          .services(servicesid)
-          .verificationChecks.create({
-            code: OTPentered,
-            to: phonenumber, 
-          });
-  
-          res.status(201).json({ msg: verificationCheck.status });
+        async function createVerificationCheck() {
+          const verificationCheck = await client.verify.v2
+            .services(servicesid)
+            .verificationChecks.create({
+              code: OTPentered,
+              to: phonenumber,
+            });
+          if (verificationCheck.status === "approved") {
+            const checkpatient = await Patient.find({
+              phoneNumber: phonenumber,
+            });
+            if (checkpatient) {
+              const token = jwt.sign(
+                { id: checkpatient._id },
+                process.env.JWT_SECRET_KEY
+              );
+              // res.status(200).json({ token, checkpatient });
+              res
+                .status(201)
+                .json({
+                  token,
+                  msg: verificationCheck.status,
+                  patientdata: checkpatient,
+                });
+            } else {
+              const newPatient = new Patient({
+                phoneNumber: phonenumber,
+              });
+              const savedPatient = await newPatient.save();
+              const token = jwt.sign(
+                { id: savedPatient._id },
+                process.env.JWT_SECRET_KEY
+              );
+              res
+                .status(201)
+                .json({
+                  token,
+                  msg: verificationCheck.status,
+                  patientdata: savedPatient,
+                });
+            }
+          }
+          res.status(401).json({ msg: verificationCheck.status });
+        }
+
+        createVerificationCheck();
+      } catch (err) {
+        res.status(500).json({ error: err.message });
       }
-
-      createVerificationCheck();
+    }
+  },
+  loginwithGoogle: async(req, res) => {
+    try{
+      const checkpatient = await Patient.find({
+      
+        email: email,
+      
+      });
+      if (checkpatient) {
+        const token = jwt.sign(
+          { id: checkpatient._id },
+          process.env.JWT_SECRET_KEY
+        );
+        // res.status(200).json({ token, checkpatient });
+        res
+          .status(201)
+          .json({
+            token,
+            patientdata: checkpatient,
+          });
+      } else {
+        const newPatient = new Patient({
+          username:username,
+          email: email,
+          googleId:googleId
+        });
+        const savedPatient = await newPatient.save();
+        const token = jwt.sign(
+          { id: savedPatient._id },
+          process.env.JWT_SECRET_KEY
+        );
+        res
+          .status(201)
+          .json({
+            token,
+            
+            patientdata: savedPatient,
+          });
       
     }
-    catch(err){
+    }
+    catch (err) {
       res.status(500).json({ error: err.message });
     }
-  }}
-}
+    
+  },
+};
