@@ -38,7 +38,24 @@ module.exports={
             res.status(500).json({ error: err.message });
         }  
     },
+    
+    getallLocations:async (req,res)=>{
 
+        
+        try {
+    // Use distinct to get unique locations
+    const uniqueLocations = await Hospital.distinct('location');
+
+    if (uniqueLocations.length < 1) {
+      return res.status(400).json({ msg: "No Hospital Locations Found" });
+    }
+
+    res.status(200).json(uniqueLocations);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+        
+    },
     getHospitalbyID:async(req,res)=>{
         let hospitalID=req.body.hospitalID
         //console.log(hospitalID);
@@ -51,7 +68,20 @@ module.exports={
         catch(err){
             res.status(500).json({ error: err.message });
         }  
-    }
+    },
+
+    getHospitalbyLocation:async(req,res)=>{
+        let location=req.body.location
+        console.log(location);
+        
+        try{
+            const Hospitals=await Hospital.find({location:location})
+            if(Hospitals.length<1) return res.status(400).json({ msg: "No Hospitals Found" });
+            res.status(201).json(Hospitals);
+        }
+        catch(err){
+            res.status(500).json({ error: err.message });
+        }  }
     ,
     UpdateHospitalByID:(req,res)=>{
 
@@ -81,6 +111,25 @@ module.exports={
     },
     deleteDepartment:(req,res)=>{
 
+    },
+    getalldepartmentByHospital:async(req,res)=>{
+       const  hospitalId=req.body.hospitalId
+       try {
+        // Find departments by hospitalId and select only the departmentName field
+        const departments = await DepartmentModel.find({ hospitalId }).select('DepartmentName -_id');
+    
+        if (departments.length < 1) {
+          return res.status(400).json({ msg: "No Departments Found for this Hospital" });
+        }
+    
+        // Map the result to return an array of department names
+        const departmentNames = departments.map(dept => dept.DepartmentName);
+    
+        res.status(200).json(departmentNames);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    
     },
     Addopdetails:async(req,res)=>{
         let {hospitalId,Price,validity}=req.body.HospitalOP

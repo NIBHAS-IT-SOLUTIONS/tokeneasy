@@ -35,6 +35,37 @@ module.exports = {
   },
   UpdateDoctor: (req, res) => {},
   deleteDoctor: (req, res) => {},
+  getdoctorsbyHospital:async(req,res)=>{
+    const  hospitalId  = req.body.hospitalId;
+    try {
+      // Find doctors by hospitalId
+      const doctors = await Doctor.find({ hospitalId }).select('Doctorname specialization contactInfo availability');
+  
+      if (doctors.length < 1) {
+        return res.status(400).json({ msg: "No Doctors Found in this Hospital" });
+      }
+  
+      res.status(200).json(doctors);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+  getdoctorsbydepartment:async (req, res) => {
+      const  departmentId  = req.body.departmentId;
+    
+      try {
+        // Find doctors by departmentId
+        const doctors = await DoctorModel.find({Department:departmentId }).select('Doctorname specialization contactInfo availability');
+    
+        if (doctors.length < 1) {
+          return res.status(400).json({ msg: "No Doctors Found in this Department" });
+        }
+    
+        res.status(200).json(doctors);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+  },
   adddoctorleave: async (req, res) => {
     const { id } = req.params;
     const { date, onLeave, MorningOP, EveningOP, notes } =
@@ -186,4 +217,37 @@ module.exports = {
       res.status(500).json({ error: err.message });
     }
   },
+  slotavailaility:async(req,res)=>{
+    const { doctorId } = req.params;
+  const { day, slotId } = req.query;
+
+  try {
+    const doctor = await Doctor.findOne(
+      { _id: doctorId, 'availability.day': day, 'availability.timeSlots._id': slotId },
+      { 'availability.$': 1 }
+    );
+
+    if (!doctor) {
+      return res.status(404).json({ msg: 'Doctor not found or no availability for the day' });
+    }
+
+    const availability = doctor.availability[0];
+    const timeSlot = availability.timeSlots.id(slotId);
+    const availableSlots = timeSlot.totalSlots - timeSlot.bookedSlots;
+
+    res.status(200).json({
+      day: availability.day,
+      OPType: timeSlot.OPType,
+      startTime: timeSlot.startTime,
+      endTime: timeSlot.endTime,
+      totalSlots: timeSlot.totalSlots,
+      bookedSlots: timeSlot.bookedSlots,
+      slotStatus: timeSlot.slotStatus, // Returns the array of slot statuses
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+  },
+  
 };

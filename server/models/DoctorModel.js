@@ -5,11 +5,7 @@ const TimeSlotSchema = new Schema({
   OPType: {
     type: String,
     required: true,
-    enum: [
-      "Morning OP",
-      "Evening OP",
-      "Special OP",
-    ],
+    enum: ['Morning OP', 'Evening OP', 'Special OP'],
   },
   startTime: {
     type: String, // e.g., "09:00 AM"
@@ -19,11 +15,20 @@ const TimeSlotSchema = new Schema({
     type: String, // e.g., "12:00 PM"
     required: true,
   },
-  slots:{
-    type:Number,
-    required:true
-  }
+  totalSlots: {
+    type: Number,
+    required: true, // Total slots, e.g., 50
+  },
+  bookedSlots: {
+    type: Number,
+    default: 0, // Initially, no slots are booked
+  },
+  slotStatus: {
+    type: [Boolean], // Array representing each slot's status (true for booked, false for available)
+    default: Array(50).fill(false), // Default: 50 slots, all available (false)
+  },
 });
+
 
 const AvailabilitySchema = new Schema({
   day: {

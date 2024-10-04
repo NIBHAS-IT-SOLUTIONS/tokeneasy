@@ -15,6 +15,9 @@ const servicesid = process.env.TWILIO_SERVICE_SID;
 const { default: mongoose, Mongoose } = require("mongoose");
 const Admin = require("../models/AdminModel");
 const sendSMS = require("../utils/sendSMS");
+const { log } = require("console");
+const Booking = require("../models/BookingModel");
+const BookingModel = require("../models/BookingModel");
 module.exports = {
   signup: async (req, res) => {
     try {
@@ -167,13 +170,11 @@ module.exports = {
                 process.env.JWT_SECRET_KEY
               );
               // res.status(200).json({ token, checkpatient });
-              res
-                .status(201)
-                .json({
-                  token,
-                  msg: verificationCheck.status,
-                  patientdata: checkpatient,
-                });
+              res.status(201).json({
+                token,
+                msg: verificationCheck.status,
+                patientdata: checkpatient,
+              });
             } else {
               const newPatient = new Patient({
                 phoneNumber: phonenumber,
@@ -183,13 +184,11 @@ module.exports = {
                 { id: savedPatient._id },
                 process.env.JWT_SECRET_KEY
               );
-              res
-                .status(201)
-                .json({
-                  token,
-                  msg: verificationCheck.status,
-                  patientdata: savedPatient,
-                });
+              res.status(201).json({
+                token,
+                msg: verificationCheck.status,
+                patientdata: savedPatient,
+              });
             }
           }
           res.status(401).json({ msg: verificationCheck.status });
@@ -201,49 +200,116 @@ module.exports = {
       }
     }
   },
-  loginwithGoogle: async(req, res) => {
-    try{
-      const checkpatient = await Patient.find({
-      
+  loginwithGoogle: async (req, res) => {
+    const { username, email, googleId } = req.body;
+    try {
+      const checkpatient = await Patient.findOne({
         email: email,
-      
       });
-      if (checkpatient) {
+      if (checkpatient != null) {
+        if (checkpatient.googleId == null) {
+          const updatedPatient = await Patient.findByIdAndUpdate(
+            checkpatient._id,
+            { googleId, email },
+            
+            
+          );
+          console.log(updatedPatient);
+        }
         const token = jwt.sign(
           { id: checkpatient._id },
           process.env.JWT_SECRET_KEY
         );
         // res.status(200).json({ token, checkpatient });
-        res
-          .status(201)
-          .json({
-            token,
-            patientdata: checkpatient,
-          });
+        res.status(201).json({
+          token,
+          patientdata: checkpatient,
+        });
       } else {
         const newPatient = new Patient({
-          username:username,
+          username: username,
           email: email,
-          googleId:googleId
+          googleId: googleId,
+          emailverified: true,
         });
         const savedPatient = await newPatient.save();
         const token = jwt.sign(
           { id: savedPatient._id },
           process.env.JWT_SECRET_KEY
         );
-        res
-          .status(201)
-          .json({
-            token,
-            
-            patientdata: savedPatient,
-          });
-      
-    }
-    }
-    catch (err) {
+        res.status(201).json({
+          token,
+          patientdata: savedPatient,
+        });
+      }
+    } catch (err) {
       res.status(500).json({ error: err.message });
     }
-    
   },
+  bookslot:async(req,res)=>{
+   // Book a specific slot in a time slot
+router.post('/book-slot', async (req, res) => {
+  const { doctorId, slotIndex, day, slotId } = req.body;
+
+  try {
+    // Find the time slot by doctorId and day, and check if the specific slot is available
+    const doctor = await Doctor.findOne({
+      _id: doctorId,
+      'availability.day': day,
+      'availability.timeSlots._id': slotId,
+      [`availability.timeSlots.$.slotStatus.${slotIndex}`]: false, // Ensure the slot is not booked
+    });
+
+    if (!doctor) {
+      return res.status(400).json({ msg: 'Slot is unavailable or already booked.' });
+    }
+
+    // Update the slotStatus to mark it as booked and increment the bookedSlots count
+    const updatedDoctor = await Doctor.findOneAndUpdate(
+      {
+        _id: doctorId,
+        'availability.day': day,
+        'availability.timeSlots._id': slotId,
+      },
+      {
+        $set: {
+          [`availability.$.timeSlots.$[slot].slotStatus.${slotIndex}`]: true, // Mark slot as booked
+        },
+        $inc: {
+          'availability.$.timeSlots.$[slot].bookedSlots': 1, // Increment the bookedSlots count
+        },
+      },
+      {
+        arrayFilters: [{ 'slot._id': slotId }],
+        new: true, // Return the updated document
+      }
+    );
+
+    res.status(200).json({ msg: 'Slot booked successfully', doctor: updatedDoctor });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+  },
+  getbookings:async(req,res)=>{
+    const { patientId } = req.params;
+
+  try {
+    const bookings = await Booking.find({ patientId })
+      .populate('doctorId', 'Doctorname specialization') // Populate doctor details
+      .populate('patientId', 'name email') // Optionally populate patient details
+      .sort({ date: 1 }); // Sort by appointment date
+
+    if (bookings.length === 0) {
+      return res.status(404).json({ message: 'No bookings found for this patient.' });
+    }
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+  }
 };
